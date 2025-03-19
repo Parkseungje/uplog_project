@@ -1,0 +1,58 @@
+version: '3'
+name: test
+services:
+  mysql:
+    image: mysql:8.0.34
+    networks:
+      - khds_network
+    volumes:
+      - ./backend/db/conf.d:/etc/mysql/conf.d
+      - ./backend/db/data:/var/lib/mysql
+      - ./backend/db/initdb.d:/docker-entrypoint-initdb.d
+    env_file: ./backend/.env
+    ports:
+      - "3307:3307"
+    restart: always
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    networks:
+      - khds_network
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3307/lecture?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=mysqluser
+      - SPRING_DATASOURCE_PASSWORD=mysqlpw
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+    restart: always
+  frontend:
+    depends_on:
+      - backend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - khds_network
+  nginx:
+    image: nginx:latest
+    networks:
+      - khds_network
+    restart: always
+    volumes:
+      - ./conf/:/etc/nginx/conf.d
+    ports:
+      - 80:80
+    depends_on:
+      - backend
+      - frontend
+networks:
+  khds_network:
+    driver: bridge
