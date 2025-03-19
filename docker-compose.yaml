@@ -10,6 +10,10 @@ services:
       - ./backend/db/data:/var/lib/mysql
       - ./backend/db/initdb.d:/docker-entrypoint-initdb.d
     env_file: ./backend/.env
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
     ports:
       - "3307:3307"
     restart: always
