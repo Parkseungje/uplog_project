@@ -3,15 +3,18 @@ package com.uplog_project.backend.api.user.service;
 import com.uplog_project.backend.api.user.dto.UserRequest;
 import com.uplog_project.backend.api.user.entity.User;
 import com.uplog_project.backend.api.user.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService{
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -21,7 +24,7 @@ public class UserServiceImpl implements UserService{
 
         User builder = User.builder()
                 .userEmail(userRequest.getUserEmail())
-                .userPw(userRequest.getUserPw())
+                .userPw(passwordEncoder.encode(userRequest.getUserPw()))
                 .userNickname(userRequest.getUserNickname())
                 .userIntroduce(userRequest.getUserIntroduce())
                 .build();
