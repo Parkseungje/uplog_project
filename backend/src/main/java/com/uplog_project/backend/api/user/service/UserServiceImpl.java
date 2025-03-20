@@ -24,10 +24,15 @@ public class UserServiceImpl implements UserService{
 
         User builder = User.builder()
                 .userEmail(userRequest.getUserEmail())
-                .userPw(passwordEncoder.encode(userRequest.getUserPw()))
+//                .userPw(passwordEncoder.encode(userRequest.getUserPw()))
+                .userPw(userRequest.getUserPw())
                 .userNickname(userRequest.getUserNickname())
                 .userIntroduce(userRequest.getUserIntroduce())
                 .build();
+
+        System.out.println("userRequest.email = " + userRequest.getUserEmail());
+        System.out.println("userRequest.pw = " + userRequest.getUserPw());
+        System.out.println("userRequest.pwcheck = " + userRequest.getUserPwCheck());
 
         userRepository.save(builder);
     }
