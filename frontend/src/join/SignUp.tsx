@@ -29,14 +29,6 @@ export default function SignupPage() {
       return;
     }
 
-    console.log("📝 전송할 데이터:", {
-      userNickname,
-      userEmail,
-      userPw,
-      userPwCheck,
-      userIntroduce,
-    });
-
     try {
       const response = await fetch("http://localhost:8080/api/signup", {
         method: "POST",
