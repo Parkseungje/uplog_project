@@ -52,12 +52,16 @@ export default function SignupPage() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("회원가입 실패! 다시 시도해주세요.");
+      const data = await response.json();
+    //   console.log("🔵 백엔드 응답:", data);
+
+      if (response.ok) {
+        alert(data.message); // 회원가입 성공 메시지
+        navigate("/");
+      } else {
+        setError(data.message); // 실패 메시지 설정
       }
 
-      alert("회원가입 성공! 로그인 페이지로 이동합니다.");
-      navigate("/");
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
