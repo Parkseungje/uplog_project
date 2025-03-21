@@ -30,9 +30,7 @@ export default function SignupPage() {
     }
 
     try {
-      //로컬실행시 변경해야함 "http://localhost:8080/api/signup"
-      //도커실행시 변경해야함 "http://localhost/api/signup"
-      const response = await fetch("http://localhost:8080/api/signup", {
+      const response = await fetch("/api/user/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

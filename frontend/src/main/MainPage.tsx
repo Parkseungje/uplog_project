@@ -1,27 +1,108 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import GithubIcon from "../assets/icons/github-icon.svg";
 import GoogleIcon from "../assets/icons/google-icon.svg";
-import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 
 export default function MainPage() {
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
+  const [userEmail, setEmail] = useState<string>("");
+  const [userPw, setPassword] = useState<string>("");
+  const [userNickname, setUserName] = useState<string | null>(null);
+  const [showLogout, setShowLogout] = useState<boolean>(false);
+
   const navigate = useNavigate();
 
-  const GithubButton = () => (
-    <button className="p-3 bg-white text-white rounded-full hover:bg-gray-700 transition">
-      <img src={GithubIcon} alt="GitHub 로그인" className="w-6 h-6" />
-    </button>
-  );
+  // 로그인 시도 함수
+  const handleLogin = async () => {
+    try {
+      const response = await fetch("/api/user/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userEmail, userPw }),
+      });
 
-  const GoogleButton = () => (
-    <button className="p-3 bg-white text-white rounded-full hover:bg-gray-700 transition">
-      <img src={GoogleIcon} alt="Google 로그인" className="w-6 h-6" />
-    </button>
-  );
+      const redata = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("accessToken", redata.data.token); // JWT 저장
+        setUserName(redata.data.userNickname); // 백엔드가 username도 같이 반환한다고 가정
+        setIsLoginOpen(false); // 로그인 모달 닫기
+      } else {
+        alert("로그인 실패: " + redata.message);
+      }
+    } catch (error) {
+      console.error("로그인 중 오류:", error);
+      alert("서버 오류");
+    }
+  };
+
+  // 로그아웃 함수
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    setUserName(null);
+    setShowLogout(false);
+  };
+
+  // 자동 로그인 유지용 (토큰 있을 때 사용자 정보 가져오기)
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    if (token) {
+      fetch("/api/user/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then(res => res.json())
+        .then(redata => {
+          if (redata.data.username) {
+            setUserName(redata.data.username);
+          }
+        })
+        .catch(err => console.log("토큰으로 유저 조회 실패", err));
+    }
+  }, []);
+
+  // 로그인/유저 이름 버튼
+  // HeaderRight: 로그인 여부에 따라 UI 다르게 렌더링
+  const HeaderRight = () =>
+    userNickname ? (
+      <div className="relative">
+        {/* 닉네임 버튼 */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation(); // 바깥 클릭 방지
+            setShowLogout(!showLogout);
+          }}
+          className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full text-white font-semibold transition duration-200"
+        >
+          {userNickname}님 ⌄
+        </button>
+  
+        {/* 로그아웃 드롭다운 */}
+        {showLogout && (
+          <div className="absolute right-0 mt-2 w-40 bg-white text-gray-800 rounded-lg shadow-lg z-50">
+            <button
+              onClick={handleLogout}
+              className="block w-full px-4 py-3 text-sm text-left rounded-lg hover:bg-gray-100 transition"
+            >
+              로그아웃
+            </button>
+          </div>
+        )}
+      </div>
+    ) : (
+      <Button
+        onClick={() => setIsLoginOpen(true)}
+        className="px-5 py-2 rounded-full bg-white/20 hover:bg-white/30"
+      >
+        로그인
+      </Button>
+    );
+  
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-400 to-purple-500 text-white">
@@ -30,9 +111,7 @@ export default function MainPage() {
         <button onClick={() => window.location.reload()} className="text-2xl font-extrabold tracking-wide">
           🌟 Uplog
         </button>
-        <Button onClick={() => setIsLoginOpen(true)} className="px-5 py-2 rounded-full bg-white/20 hover:bg-white/30">
-          로그인
-        </Button>
+        <HeaderRight />
       </header>
 
       {/* 메인 컨텐츠 */}
@@ -55,13 +134,31 @@ export default function MainPage() {
             className="bg-white/20 p-6 rounded-xl shadow-lg w-96 backdrop-blur-md border border-white/30"
           >
             <h2 className="text-2xl font-bold text-center mb-4 text-white">로그인</h2>
-            <Input type="email" placeholder="이메일" className="mb-3 bg-white/30 text-white placeholder-white/60" />
-            <Input type="password" placeholder="비밀번호" className="mb-3 bg-white/30 text-white placeholder-white/60" />
-            <Button className="w-full mb-3 bg-blue-500 hover:bg-blue-600 text-white">로그인</Button>
+            <Input
+              type="email"
+              placeholder="이메일"
+              value={userEmail}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mb-3 bg-white/30 text-white placeholder-white/60"
+            />
+            <Input
+              type="password"
+              placeholder="비밀번호"
+              value={userPw}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mb-3 bg-white/30 text-white placeholder-white/60"
+            />
+            <Button onClick={handleLogin} className="w-full mb-3 bg-blue-500 hover:bg-blue-600 text-white">
+              로그인
+            </Button>
 
             <div className="flex justify-center gap-4 my-3">
-              <GithubButton />
-              <GoogleButton />
+              <button className="p-3 bg-white text-white rounded-full hover:bg-gray-700 transition">
+                <img src={GithubIcon} alt="GitHub 로그인" className="w-6 h-6" />
+              </button>
+              <button className="p-3 bg-white text-white rounded-full hover:bg-gray-700 transition">
+                <img src={GoogleIcon} alt="Google 로그인" className="w-6 h-6" />
+              </button>
             </div>
 
             <button
