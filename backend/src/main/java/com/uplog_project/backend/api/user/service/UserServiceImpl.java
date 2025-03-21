@@ -1,5 +1,7 @@
 package com.uplog_project.backend.api.user.service;
 
+import com.uplog_project.backend.api.global.exception.CustomException;
+import com.uplog_project.backend.api.global.exception.user.UserErrorCode;
 import com.uplog_project.backend.api.user.dto.UserRequest;
 import com.uplog_project.backend.api.user.entity.User;
 import com.uplog_project.backend.api.user.repository.UserRepository;
@@ -19,8 +21,8 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public void addUsers(UserRequest userRequest) {
-        // 비밀번호 확인 실패 시 예외 발생
-        if(!checkPassword(userRequest)) throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        //검증 수행
+        verification(userRequest);
 
         User builder = User.builder()
                 .userEmail(userRequest.getUserEmail())
@@ -30,6 +32,21 @@ public class UserServiceImpl implements UserService{
                 .build();
 
         userRepository.save(builder);
+    }
+
+    private void verification(UserRequest userRequest) {
+        // 비밀번호 확인 실패 시 예외 발생
+        if (!checkPassword(userRequest)) {
+            throw new CustomException(UserErrorCode.NOT_MATCH_PASSWORD_CONFIRM);
+        }
+        // 이메일 중복시 예외 발생
+        if (emailDuplicateCheck(userRequest)) {
+            throw new CustomException(UserErrorCode.DUPLICATE_USER_ID);
+        }
+    }
+
+    public boolean emailDuplicateCheck(UserRequest userRequest){
+        return userRepository.existsByUserEmail(userRequest.getUserEmail());
     }
 
     //패스워드 체크
