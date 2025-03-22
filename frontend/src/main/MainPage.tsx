@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react"; // ← useRef 추가
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import GithubIcon from "../assets/icons/github-icon.svg";
@@ -14,6 +14,7 @@ export default function MainPage() {
   const [showLogout, setShowLogout] = useState<boolean>(false);
 
   const navigate = useNavigate();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // 로그인 시도 함수
   const handleLogin = async () => {
@@ -58,19 +59,35 @@ export default function MainPage() {
       })
         .then(res => res.json())
         .then(redata => {
-          if (redata.data.username) {
-            setUserName(redata.data.username);
+          console.log("데이터 확인 : "+redata);
+          if (redata.data.userNickname) {
+            setUserName(redata.data.userNickname);
           }
         })
         .catch(err => console.log("토큰으로 유저 조회 실패", err));
     }
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowLogout(false);
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+  
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showLogout]);
+
+
   // 로그인/유저 이름 버튼
   // HeaderRight: 로그인 여부에 따라 UI 다르게 렌더링
   const HeaderRight = () =>
     userNickname ? (
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
         {/* 닉네임 버튼 */}
         <button
           onClick={(e) => {
