@@ -1,9 +1,13 @@
 package com.uplog_project.backend.api.user.controller;
 
 import com.uplog_project.backend.api.global.aop.Response;
-import com.uplog_project.backend.api.user.dto.UserRequest;
+import com.uplog_project.backend.api.user.dto.GoogleAccountProfileResponse;
+import com.uplog_project.backend.api.user.dto.UserDTO;
+import com.uplog_project.backend.api.user.entity.User;
 import com.uplog_project.backend.api.user.service.UserService;
-import java.util.HashMap;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +17,24 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Value;
 
 @RestController
 @RequestMapping("/api/user")
 @Slf4j
 public class UserController {
+
+    @Value("${base-url}")
+    private String baseUrl;
+    @Value("${google.oauth.redirect-path}")
+    private String redirectPath;
+
+    private String redirectUri;
+
+    @PostConstruct
+    public void init() {
+        this.redirectUri = baseUrl + redirectPath;
+    }
 
     private final UserService userService;
 
@@ -26,21 +43,48 @@ public class UserController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<Response<?>> signUp(@RequestBody UserRequest userRequest) {
-        userService.addUsers(userRequest);
+    public ResponseEntity<Response<?>> signUp(@RequestBody UserDTO userDTO) {
+        userService.addUsers(userDTO);
         return ResponseEntity.ok(Response.success("회원가입 성공"));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Response<?>> logIn(@RequestBody UserRequest userRequest) {
-        Map<String, String> data = userService.joinUser(userRequest);
+    public ResponseEntity<Response<?>> logIn(@RequestBody UserDTO userDTO) {
+        Map<String, String> data = userService.joinUser(userDTO);
         return ResponseEntity.ok(Response.success(data));
     }
 
     @GetMapping("/me")
     public ResponseEntity<Response<?>> getMyInfo(Authentication authentication) {
-        Map<String, Object> data = userService.findMe(authentication);
+        User data = userService.findMe(authentication);
         return ResponseEntity.ok(Response.success(data));
+    }
+
+    @GetMapping("/oauth/google")
+    public void redirectToGoogleOAuth(HttpServletResponse response) throws IOException {
+        //https://console.cloud.google.com/auth/clients 에서 설정정보 clientId, redirectUri 가져오기
+        String clientId = "63365469412-rhutqu5k2n2ctq9tmageenj3kunff85r.apps.googleusercontent.com";
+        String scope = "email profile openid";
+        String responseType = "code";
+
+        String url = "https://accounts.google.com/o/oauth2/v2/auth?" +
+                "client_id=" + clientId +
+                "&redirect_uri=" + this.redirectUri +
+                "&response_type=" + responseType +
+                "&scope=" + scope +
+                "&access_type=offline";
+
+        response.sendRedirect(url);
+    }
+
+    @PostMapping("/oauth/google/callback")
+    public ResponseEntity<?> requestGoogleAccessToken(@RequestBody Map<String, String> body) {
+        String code = body.get("code");
+        log.error("✅ 받은 Google OAuth code: {}", code);
+
+        Map<String, String> data = userService.getGoogleAccoutWithToken(code);
+
+        return ResponseEntity.ok(data);
     }
 
 }

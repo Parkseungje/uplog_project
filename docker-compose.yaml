@@ -34,6 +34,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy # mysql이 준비된 후 실행
+    env_file:
+      - ./backend/.env
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/uplog?useSSL=false&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
