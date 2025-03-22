@@ -65,8 +65,8 @@ public class UserServiceImpl implements UserService{
                 .orElseThrow(() -> new CustomException(UserErrorCode.NOT_FOUND_USER));
 
         Map<String, Object> data = Map.of(
-                "username", user.getUserNickname(),
-                "email", user.getUserEmail()
+                "userNickname", user.getUserNickname(),
+                "userEmail", user.getUserEmail()
         );
 
         return data;
