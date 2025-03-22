@@ -10,7 +10,9 @@ export default function MainPage() {
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
   const [userEmail, setEmail] = useState<string>("");
   const [userPw, setPassword] = useState<string>("");
-  const [userNickname, setUserName] = useState<string | null>(null);
+  const [userNickname, setUserName] = useState<string | null>(() => {
+    return localStorage.getItem("userNickname");
+  });
   const [showLogout, setShowLogout] = useState<boolean>(false);
 
   const navigate = useNavigate();
@@ -43,6 +45,7 @@ export default function MainPage() {
   // 로그아웃 함수
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("userNickname");
     setUserName(null);
     setShowLogout(false);
   };
@@ -50,7 +53,14 @@ export default function MainPage() {
   // 자동 로그인 유지용 (토큰 있을 때 사용자 정보 가져오기)
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-
+    const nickname = localStorage.getItem("userNickname");
+  
+    // 👉 1. 로컬스토리지에 있는 값 먼저 반영
+    if (nickname) {
+      setUserName(nickname);
+    }
+  
+    // 👉 2. 토큰이 있으면 백엔드에 실제 유저 정보 fetch (검증용)
     if (token) {
       fetch("/api/user/me", {
         headers: {
@@ -59,7 +69,6 @@ export default function MainPage() {
       })
         .then(res => res.json())
         .then(redata => {
-          console.log("데이터 확인 : "+redata);
           if (redata.data.userNickname) {
             setUserName(redata.data.userNickname);
           }
@@ -173,7 +182,12 @@ export default function MainPage() {
               <button className="p-3 bg-white text-white rounded-full hover:bg-gray-700 transition">
                 <img src={GithubIcon} alt="GitHub 로그인" className="w-6 h-6" />
               </button>
-              <button className="p-3 bg-white text-white rounded-full hover:bg-gray-700 transition">
+              <button
+                className="p-3 bg-white text-white rounded-full hover:bg-gray-700 transition"
+                onClick={() => {
+                  window.location.href = `${process.env.REACT_APP_BACKEND}/api/user/oauth/google`;
+                }}
+              >
                 <img src={GoogleIcon} alt="Google 로그인" className="w-6 h-6" />
               </button>
             </div>

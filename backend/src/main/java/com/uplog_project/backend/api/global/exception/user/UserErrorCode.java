@@ -12,6 +12,7 @@ public enum UserErrorCode implements ErrorCode {
     HANDLE_ACCESS_DENIED(HttpStatus.FORBIDDEN.value(), "로그인이 필요합니다."),
     CANT_ACCESS(HttpStatus.UNAUTHORIZED.value(), "접근권한이 없습니다"),
     FAIL_KAKAO_LOGIN(HttpStatus.BAD_REQUEST.value(), "카카오 로그인 실패!"),
+    NOT_FOUND_ACCESS_TOKEN_RESPONSE(HttpStatus.BAD_REQUEST.value(), "엑세스 토큰 요청에 실패했습니다."),
     ;
 
     private final int code;
