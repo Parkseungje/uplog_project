@@ -7,9 +7,12 @@ import com.uplog_project.backend.api.user.dto.GoogleAccountProfileResponse;
 import com.uplog_project.backend.api.user.dto.UserDTO;
 import com.uplog_project.backend.api.user.entity.User;
 import com.uplog_project.backend.api.user.repository.UserRepository;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -47,6 +50,18 @@ public class UserServiceImpl implements UserService{
                 .build();
 
         userRepository.save(builder);
+    }
+
+    // 소셜 회원가입용
+    public User addUsers(String email, String nickname, String encodedPassword, String provider) {
+        User newUser = User.builder()
+                .userEmail(isUserExists(email))
+                .userNickname(nickname)
+                .userPw(encodedPassword)
+                .provider(provider)
+                .build();
+
+        return userRepository.save(newUser);
     }
 
     @Override
@@ -92,6 +107,15 @@ public class UserServiceImpl implements UserService{
         return userRepository.findByUserEmail(userDTO.getUserEmail()).isPresent();
     }
 
+    // 유저 존재여부 확인
+    public String isUserExists(String userEmail){
+        boolean exists = userRepository.findByUserEmail(userEmail).isPresent();
+
+        if (exists) throw new CustomException(UserErrorCode.DUPLICATE_USER_ID);
+
+        return userEmail;
+    }
+
     // 유저 조회, 없으면 예외
     public User getUserByEmail(String email) {
         return userRepository.findByUserEmail(email)
@@ -103,33 +127,43 @@ public class UserServiceImpl implements UserService{
         return userDTO.getUserPw().equals(userDTO.getUserPwCheck());
     }
 
-    // 리다이렉트 코드를 이용하여 엑세스토큰을 요청하는 양식을 만든다
+    // 리다이렉트 코드를 이용하여 엑세스토큰을 반환
     public Map<String, String> getGoogleAccoutWithToken(String code){
         GoogleAccountProfileResponse profile = googleClient.getGoogleAccountProfile(code);
 
         String email = profile.getEmail();
         String nickname = profile.getName(); // 구글에서 가져온 이름을 닉네임으로 설정
 
-        // 1. 사용자 존재여부 확인
-        User user = userRepository.findByUserEmail(email)
-                .orElseGet(()->{
-                    // 2. 없다면 회원가입
-                    User newUser = User.builder()
-                            .userEmail(email)
-                            .userNickname(nickname)
-                            .userPw("google")
-                            .provider("google")
-                            .build();
-                    return userRepository.save(newUser);
-                });
+        log.error("email = {}",email);
 
-        // 3. JWT 토큰 생성
+        // 소셜 로그인으로 생성한 비밀번호는 랜덤 UUID + 암호화 처리
+        String randomPassword = UUID.randomUUID().toString();
+        String encodedPassword = passwordEncoder.encode(randomPassword);
+
+
+        // 1. 사용자 존재여부 확인후 없으면 가입
+        User user = userRepository.findByUserEmail(email)
+                .orElseGet(() -> addUsers(email, nickname, encodedPassword, "google"));
+
+        // 2. JWT 토큰 생성
         String token = jwtTokenProvider.createToken(user.getUserEmail());
 
-        // 4. 프론트로 반환할 정보 구성
+        // 3. 프론트로 반환할 정보 구성
         return Map.of(
                 "token", token,
                 "userNickname", user.getUserNickname()
         );
+    }
+
+    //구글에 code 요청하는 리다이렉트 반환
+    public void redirectGoogleRequest(HttpServletResponse response) throws IOException {
+        String url = "https://accounts.google.com/o/oauth2/v2/auth?" +
+                "client_id=" + googleClient.getClientId() +
+                "&redirect_uri=" + googleClient.getRedirectUri() +
+                "&response_type=" + googleClient.getResponseType() +
+                "&scope=" + googleClient.getScope() +
+                "&access_type=offline";
+
+        response.sendRedirect(url);
     }
 }
