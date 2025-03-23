@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 import javax.security.auth.login.LoginException;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,9 +24,12 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+//https://console.cloud.google.com/auth/clients 에서 설정정보 clientId, redirectUri 가져오기
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Getter
 public class GoogleClient {
     @Value("${base-url}")
     private String baseUrl;
@@ -44,6 +48,10 @@ public class GoogleClient {
     private String accessTokenUrl;
     @Value("${google.oauth.profile-url}")
     private String profileUrl;
+    @Value("email profile openid")
+    private String scope;
+    @Value("code")
+    private String responseType;
 
     @PostConstruct
     public void init() {
