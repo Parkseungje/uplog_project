@@ -3,8 +3,6 @@ package com.uplog_project.backend.api.user.service;
 import com.uplog_project.backend.api.user.dto.GoogleAccountProfileResponse;
 import com.uplog_project.backend.api.user.dto.UserDTO;
 import com.uplog_project.backend.api.user.entity.User;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.Map;
 import org.springframework.security.core.Authentication;
 
@@ -17,5 +15,4 @@ public interface UserService {
 
     Map<String, String> getGoogleAccoutWithToken(String code);
 
-    void redirectGoogleRequest(HttpServletResponse response) throws IOException;
 }

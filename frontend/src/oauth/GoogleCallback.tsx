@@ -9,7 +9,7 @@ export default function GoogleCallback() {
     const code = params.get("code");
 
     if (code) {
-      //console.log("✅ 받은 code:", code);
+      console.log("✅ 받은 code:", code);
 
       // 백엔드로 code 전달
       fetch("/api/user/oauth/google/callback", {
@@ -20,10 +20,10 @@ export default function GoogleCallback() {
         body: JSON.stringify({ code }),
       })
         .then(res => res.json())
-        .then(redata => {
+        .then(data => {
           // JWT 저장 & 로그인 처리
-          localStorage.setItem("accessToken", redata.data.token);
-          localStorage.setItem("userNickname", redata.data.userNickname);
+          localStorage.setItem("accessToken", data.token);
+          localStorage.setItem("userNickname", data.userNickname);
 
           // ✅ 너무 일찍 렌더링하면 userNickname 이 undefined로 나옴
             setTimeout(() => {

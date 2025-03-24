@@ -62,17 +62,29 @@ public class UserController {
 
     @GetMapping("/oauth/google")
     public void redirectToGoogleOAuth(HttpServletResponse response) throws IOException {
-        userService.redirectGoogleRequest(response);
+        //https://console.cloud.google.com/auth/clients 에서 설정정보 clientId, redirectUri 가져오기
+        String clientId = "63365469412-rhutqu5k2n2ctq9tmageenj3kunff85r.apps.googleusercontent.com";
+        String scope = "email profile openid";
+        String responseType = "code";
+
+        String url = "https://accounts.google.com/o/oauth2/v2/auth?" +
+                "client_id=" + clientId +
+                "&redirect_uri=" + this.redirectUri +
+                "&response_type=" + responseType +
+                "&scope=" + scope +
+                "&access_type=offline";
+
+        response.sendRedirect(url);
     }
 
     @PostMapping("/oauth/google/callback")
-    public ResponseEntity<Response<?>> requestGoogleAccessToken(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> requestGoogleAccessToken(@RequestBody Map<String, String> body) {
         String code = body.get("code");
         log.error("✅ 받은 Google OAuth code: {}", code);
 
         Map<String, String> data = userService.getGoogleAccoutWithToken(code);
 
-        return ResponseEntity.ok(Response.success(data));
+        return ResponseEntity.ok(data);
     }
 
 }
