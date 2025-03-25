@@ -18,14 +18,14 @@
 
 ## 🛠️ 기술 스택
 ### FrontEnd
-- language
+- Language
   - JavaScript
 - FrameWork
   - React : 19
   - TypeScript : 4.9.5
  
 ### BackEnd
-- language
+- Language
   - Java : 17
 - FrameWork
   - Spring : 3.4.3 
