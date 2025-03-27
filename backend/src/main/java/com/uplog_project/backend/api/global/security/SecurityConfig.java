@@ -27,7 +27,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/user/login",
+                        .requestMatchers(
+                                "/api2/message",
+                                "/api2/user/*",
+                                "/api/user/login",
                                 "/api/user/signup",
                                 "/api/user/oauth/google",
                                 "/api/user/oauth/google/callback").permitAll()

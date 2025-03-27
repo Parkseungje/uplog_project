@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: backend
+
+  datasource:
+    #use local to docker mysql
+    url: jdbc:mysql://127.0.0.1:3307/uplog?useSSL=false&allowPublicKeyRetrieval=true
+    # docker to docker
+    # url: jdbc:mysql://mysql:3306/uplog?useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: rootpassword
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  #JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database-platform: org.hibernate.dialect.MySQLDialect
+  # SMTP
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GOOGLE_USERNAME}
+    password: ${GOOGLE_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+#localhost:3000
+base-url: ${BASE_URL}
+
+#google ouath info
+google:
+  oauth:
+    client-id: ${CLIENT_ID}
+    client-secret: ${CLIENT_SECRET}
+    redirect-path: ${REDIRECT_PATH}
+    authorization-code: ${AUTHORIZATION_CODE}
+    access-token-url: ${ACCESS_TOKEN_URL}
+    profile-url: ${PROFILE_URL}

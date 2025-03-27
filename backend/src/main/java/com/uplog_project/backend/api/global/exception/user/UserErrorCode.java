@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 
 public enum UserErrorCode implements ErrorCode {
 
-    DUPLICATE_USER_ID(HttpStatus.CONFLICT.value(), "중복되는 아이디입니다."),
+    DUPLICATE_USER_ID(HttpStatus.CONFLICT.value(), "중복되는 이메일입니다."),
     NOT_MATCH_PASSWORD_CONFIRM(HttpStatus.BAD_REQUEST.value(), "비밀번호가 일치하지 않습니다"),
     NOT_FOUND_USER(HttpStatus.NOT_FOUND.value(), "존재하지 않는 유저입니다"),
     BAD_REQUEST_PASSWORD(HttpStatus.BAD_REQUEST.value(), "로그인 정보를 다시 확인하세요"),

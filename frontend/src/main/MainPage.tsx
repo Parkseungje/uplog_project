@@ -8,7 +8,7 @@ import { Input } from "../components/ui/Input";
 
 export default function MainPage() {
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
-  const [userEmail, setEmail] = useState<string>("");
+  const [toEmail, setToEmail] = useState<string>("");
   const [userPw, setPassword] = useState<string>("");
   const [userNickname, setUserName] = useState<string | null>(() => {
     return localStorage.getItem("userNickname");
@@ -17,6 +17,12 @@ export default function MainPage() {
 
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isEmailSent, setIsEmailSent] = useState<boolean>(false);
+  const handleCloseModal = () => {
+    setIsEmailSent(false);     // ✅ 이메일 상태 초기화
+    setIsLoginOpen(false);     // 모달 닫기
+  };
+  
 
   // 로그인 시도 함수
   const handleLogin = async () => {
@@ -24,7 +30,7 @@ export default function MainPage() {
       const response = await fetch("/api/user/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userEmail, userPw }),
+        body: JSON.stringify({ toEmail, userPw }),
       });
 
       const redata = await response.json();
@@ -159,25 +165,66 @@ export default function MainPage() {
             exit={{ opacity: 0, scale: 0.9 }}
             className="bg-white/20 p-6 rounded-xl shadow-lg w-96 backdrop-blur-md border border-white/30"
           >
-            <h2 className="text-2xl font-bold text-center mb-4 text-white">로그인</h2>
-            <Input
-              type="email"
-              placeholder="이메일"
-              value={userEmail}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mb-3 bg-white/30 text-white placeholder-white/60"
-            />
-            <Input
-              type="password"
-              placeholder="비밀번호"
-              value={userPw}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mb-3 bg-white/30 text-white placeholder-white/60"
-            />
-            <Button onClick={handleLogin} className="w-full mb-3 bg-blue-500 hover:bg-blue-600 text-white">
-              로그인
-            </Button>
+            <h2 className="text-2xl font-bold text-center mb-4 text-white">회원가입</h2>
 
+            {/* 이메일 인풋 + 회원가입 버튼 or 메시지 */}
+            <div className="flex gap-2 mb-4">
+              {!isEmailSent ? (
+                <>
+                  <Input
+                    type="email"
+                    placeholder="이메일을 입력하세요"
+                    value={toEmail}
+                    onChange={(e) => setToEmail(e.target.value)}
+                    className="flex-grow bg-white/30 text-white placeholder-white/60"
+                  />
+                  <button
+                    onClick={async () => {
+                      try {
+                        const response = await fetch("/api2/message", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json"
+                          },
+                          body: JSON.stringify({
+                            toEmail: toEmail,
+                            type: "email", 
+                            code: "signup" 
+                          }),
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                          console.log("✅ 이메일 전송 성공:", result);
+                          setIsEmailSent(true);
+                        } else {
+                          console.error("❌ 이메일 전송 실패:", result);
+                          alert("이메일 전송에 실패했습니다: " + result.message);
+                        }
+                      } catch (error) {
+                        console.error("❌ 서버 오류:", error);
+                        alert("서버 통신 중 오류가 발생했습니다.");
+                      }
+                    }}
+                    className="px-4 py-1 text-sm rounded-md bg-green-500 hover:bg-green-600 text-white"
+                  >
+                    회원가입
+                  </button>
+
+                </>
+              ) : (
+                <div className="w-full py-2 px-3 bg-white/20 text-white text-sm rounded-md text-center border border-white/30">
+                  이메일을 확인해주세요.
+                </div>
+              )}
+            </div>
+
+
+            {/* 소셜 회원가입 안내 */}
+            <p className="text-white/80 text-sm text-center mb-2">또는 소셜 계정으로 회원가입</p>
+
+            {/* 소셜 로그인 버튼 */}
             <div className="flex justify-center gap-4 my-3">
               <button className="p-3 bg-white text-white rounded-full hover:bg-gray-700 transition">
                 <img src={GithubIcon} alt="GitHub 로그인" className="w-6 h-6" />
@@ -192,18 +239,14 @@ export default function MainPage() {
               </button>
             </div>
 
-            <button
-              className="text-yellow-300 w-full text-center mt-3 hover:text-yellow-400 transition"
-              onClick={() => navigate("/signup")}
-            >
-              회원가입
-            </button>
-            <Button className="w-full mt-3 border-white/50 text-white" onClick={() => setIsLoginOpen(false)}>
+            {/* 닫기 버튼 */}
+            <Button className="w-full mt-3 border-white/50 text-white" onClick={handleCloseModal}>
               닫기
             </Button>
           </motion.div>
         </div>
       )}
+
     </div>
   );
 }
