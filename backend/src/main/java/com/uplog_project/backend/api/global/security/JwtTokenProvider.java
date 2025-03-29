@@ -4,11 +4,14 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.util.Date;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class JwtTokenProvider {
-    private final String SECRET_KEY = "mySecretKey123!"; // 환경변수로 빼는게 좋음
+
+    @Value("${jwt-secret-key}")
+    private String SECRET_KEY; // 환경변수로 빼는게 좋음
     private final long EXPIRATION_TIME = 1000 * 60 * 60; // 1시간
 
     // 토큰 생성
