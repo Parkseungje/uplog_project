@@ -40,10 +40,13 @@ public class EmailService implements MessageService {
 
     public void messageConvert(MessageRequest message) {
         if(message.getType().equals("email") && message.getCode().equals("login")){
-            //도커실행시 이부분 주석처리해야함
+            //도커 실행시 이부분 주석처리해야함
             this.baseUrl = "http://localhost:8080";
 
             if(!userService.isUserExists(message)){
+                //도커 실행시 이부분 주석처리해야함
+                this.baseUrl = "http://localhost:3000";
+
                 message.setCode("signup");
             }
         }
@@ -74,7 +77,7 @@ public class EmailService implements MessageService {
 
         log.info("메일 발송 성공 : {}", messageRequest.getToUserId());
 
-        //도커실행시 이부분 주석처리해야함
+        //도커 실행시 이부분 주석처리해야함
         this.baseUrl = "http://localhost:3000";
     }
 }
