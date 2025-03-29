@@ -1,31 +1,60 @@
 package com.uplog_project.backend.api.user.controller;
 
 import com.uplog_project.backend.api.global.aop.Response;
+import com.uplog_project.backend.api.global.security.JwtTokenProvider;
 import com.uplog_project.backend.api.message.service.MessageService;
 import com.uplog_project.backend.api.user.dto.UserRequest;
 import com.uplog_project.backend.api.user.service.UserService;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api2")
+@RequestMapping("/api2/user")
 @Slf4j
 public class UserController {
 
     private final UserService userservice;
 
-    public UserController(UserService userservice, MessageService messageService) {
-        this.userservice = userservice;
+    public UserController(UserService userService) {
+        this.userservice = userService;
     }
 
-    @PostMapping("/user")  //Restful하게 user로 포인트 나눈다
+    @GetMapping("/email-login/{id}")
+    public ResponseEntity<Response<?>> logIn(@PathVariable("id") String email) {
+        String redirectUrl = userservice.normalJoinUser(email);
+
+        return ResponseEntity.status(302)  // HTTP 302 Redirect
+                .header("Location", redirectUrl)
+                .build();
+    }
+
+    @PostMapping("/")
     public ResponseEntity<Response<?>> signUp(@RequestBody UserRequest userRequest) {
-        userservice.addUsers(userRequest);
+        userservice.addUser(userRequest);
         return ResponseEntity.ok(Response.success("회원가입 성공"));
+    }
+
+    @GetMapping("/") //내정보 조회
+    public ResponseEntity<Response<?>> getMyInfo(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(Response.success(Map.of(
+                "email", userDetails.getUsername()
+        )));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Response<?>> deleteUser(@PathVariable("id") Long userId) {
+        userservice.deleteUser(userId);
+        return ResponseEntity.ok(Response.success("회원 탈퇴 완료"));
     }
 
 }

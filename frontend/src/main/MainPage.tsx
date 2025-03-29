@@ -22,12 +22,29 @@ export default function MainPage() {
     setIsEmailSent(false);     // ✅ 이메일 상태 초기화
     setIsLoginOpen(false);     // 모달 닫기
   };
-  
+  const [isSignUp, setIsSignUp] = useState<boolean>(false);
 
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get("token");
+    const name = url.searchParams.get("name");
+  
+    if (token && name) {
+      localStorage.setItem("accessToken", token);
+      localStorage.setItem("userNickname", decodeURIComponent(name));
+      setUserName(decodeURIComponent(name));
+  
+      // Clean up the URL
+      url.searchParams.delete("token");
+      url.searchParams.delete("name");
+      window.history.replaceState({}, document.title, url.pathname);
+    }
+  }, []);
+  
   // 로그인 시도 함수
   const handleLogin = async () => {
     try {
-      const response = await fetch("/api/user/login", {
+      const response = await fetch("/api2/user/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ toEmail, userPw }),
@@ -68,7 +85,7 @@ export default function MainPage() {
   
     // 👉 2. 토큰이 있으면 백엔드에 실제 유저 정보 fetch (검증용)
     if (token) {
-      fetch("/api/user/me", {
+      fetch("/api2/user/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -156,7 +173,7 @@ export default function MainPage() {
         </p>
       </main>
 
-      {/* 로그인 모달 */}
+      {/* 로그인 or 회원가입 모달 */}
       {isLoginOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md">
           <motion.div
@@ -165,9 +182,11 @@ export default function MainPage() {
             exit={{ opacity: 0, scale: 0.9 }}
             className="bg-white/20 p-6 rounded-xl shadow-lg w-96 backdrop-blur-md border border-white/30"
           >
-            <h2 className="text-2xl font-bold text-center mb-4 text-white">회원가입</h2>
+            <h2 className="text-2xl font-bold text-center mb-4 text-white">
+              {isSignUp ? "회원가입" : "로그인"}
+            </h2>
 
-            {/* 이메일 인풋 + 회원가입 버튼 or 메시지 */}
+            {/* 이메일 인풋 + 로그인 버튼 or 메시지 */}
             <div className="flex gap-2 mb-4">
               {!isEmailSent ? (
                 <>
@@ -187,9 +206,9 @@ export default function MainPage() {
                             "Content-Type": "application/json"
                           },
                           body: JSON.stringify({
-                            toEmail: toEmail,
+                            toUserId: toEmail,
                             type: "email", 
-                            code: "signup" 
+                            code: isSignUp ? "signup" : "login"
                           }),
                         });
 
@@ -207,9 +226,9 @@ export default function MainPage() {
                         alert("서버 통신 중 오류가 발생했습니다.");
                       }
                     }}
-                    className="px-4 py-1 text-sm rounded-md bg-green-500 hover:bg-green-600 text-white"
+                    className="h-10 px-4 text-sm rounded-md bg-green-500 hover:bg-green-600 text-white whitespace-nowrap"
                   >
-                    회원가입
+                    {isSignUp ? "회원가입" : "로그인"}
                   </button>
 
                 </>
@@ -222,7 +241,7 @@ export default function MainPage() {
 
 
             {/* 소셜 회원가입 안내 */}
-            <p className="text-white/80 text-sm text-center mb-2">또는 소셜 계정으로 회원가입</p>
+            <p className="text-white/80 text-sm text-center mb-2">또는 소셜 계정으로 로그인</p>
 
             {/* 소셜 로그인 버튼 */}
             <div className="flex justify-center gap-4 my-3">
@@ -237,6 +256,25 @@ export default function MainPage() {
               >
                 <img src={GoogleIcon} alt="Google 로그인" className="w-6 h-6" />
               </button>
+            </div>
+
+            {/* 회원가입 or 로그인 전환 버튼 */}
+            <div className="mt-4 text-sm text-center text-white/80">
+              {isSignUp ? (
+                <>
+                  이미 계정이 있으신가요?{" "}
+                  <button className="underline" onClick={() => setIsSignUp(false)}>
+                    로그인
+                  </button>
+                </>
+              ) : (
+                <>
+                  계정이 없으신가요?{" "}
+                  <button className="underline" onClick={() => setIsSignUp(true)}>
+                    회원가입
+                  </button>
+                </>
+              )}
             </div>
 
             {/* 닫기 버튼 */}
