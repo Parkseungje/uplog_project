@@ -53,16 +53,20 @@ public class Oauth2ServiceImpl implements Oauth2Service{
 
         String email = profile.getEmail();
         String name = profile.getName(); // 구글에서 가져온 이름을 닉네임으로 설정
+        String providerUserId = profile.getId();
+        String provider = "google";
         String exist = "N";
 
         if(isUserExists(email)) exist = "Y";
 
         // JWT 토큰 생성
-        String token = jwtTokenProvider.createToken(email,name);
+        String token = jwtTokenProvider.createToken(email,name,provider,providerUserId);
 
         // 프론트로 반환할 정보 구성
         return Map.of(
                 "token", token,
+                "providerUserId",providerUserId,
+                "provider", provider,
                 "exist", exist
         );
     }

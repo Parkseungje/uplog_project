@@ -9,4 +9,6 @@ public class UserRequest implements HasEmail {
     private String name;
     private String domainName;
     private String introduce;
+    private String provider;
+    private String providerUserId;
 }

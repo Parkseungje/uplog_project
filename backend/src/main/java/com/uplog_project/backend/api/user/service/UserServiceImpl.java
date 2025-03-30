@@ -2,9 +2,12 @@ package com.uplog_project.backend.api.user.service;
 
 import com.uplog_project.backend.api.global.dto.HasEmail;
 import com.uplog_project.backend.api.global.exception.CustomException;
+import com.uplog_project.backend.api.global.exception.ouath2.Ouath2ErrorCode;
 import com.uplog_project.backend.api.global.exception.user.UserErrorCode;
 import com.uplog_project.backend.api.global.security.JwtTokenProvider;
 import com.uplog_project.backend.api.user.dto.UserRequest;
+import com.uplog_project.backend.api.user.entity.AlarmSetting;
+import com.uplog_project.backend.api.user.entity.AuthProvider;
 import com.uplog_project.backend.api.user.entity.User;
 import com.uplog_project.backend.api.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -40,30 +43,31 @@ public class UserServiceImpl implements UserService{
     @Transactional
     public void addUser(UserRequest userRequest){
         //검증 수행
-        verification(userRequest);
+        UserRequest verifiedUser = verification(userRequest);
 
         //정적 팩토리 메소드 이용
         User user = User.create(
-                userRequest.getName(),
-                userRequest.getEmail(),
-                userRequest.getDomainName(),
-                userRequest.getIntroduce(),
-                "email",
-                UUID.randomUUID().toString()
+                verifiedUser.getName(),
+                verifiedUser.getEmail(),
+                verifiedUser.getDomainName(),
+                verifiedUser.getIntroduce(),
+                verifiedUser.getProvider(),
+                verifiedUser.getProviderUserId()
         );
 
         userRepository.save(user);
     }
 
-
     public String normalJoinUser(String email){
         User user = getUserByEmail(decodeString(email));
+        AuthProvider authProvider = getAuthProviderByUser(user);
 
-        String token = jwtTokenProvider.createToken(user.getEmail(),user.getName());
+        String token = jwtTokenProvider.createToken(user.getEmail(),user.getName(),authProvider.getProvider(),authProvider.getProviderUserId());
         String redirectUrl = baseUrl+"/?token="+token;
 
         return  redirectUrl;
     }
+
 
     @Override
     public User findMe(Authentication authentication) {
@@ -82,10 +86,29 @@ public class UserServiceImpl implements UserService{
         return new String(decodedBytes);
     }
 
-    private void verification(UserRequest userRequest) {
+    private UserRequest verification(UserRequest userRequest) {
         // 이메일 중복시 예외 발생
         if (isUserExists(userRequest)) throw new CustomException(UserErrorCode.DUPLICATE_USER_EMAIL);
         if (isUserDomainExist(userRequest)) throw new CustomException(UserErrorCode.DUPLICATE_USER_DOMAIN);
+
+        String provider = userRequest.getProvider();
+        if (provider == null || provider.trim().isEmpty()) {
+            userRequest.setProvider("email");
+        }
+
+        String providerUserId = userRequest.getProviderUserId();
+        if (providerUserId == null || providerUserId.trim().isEmpty()) {
+            userRequest.setProviderUserId(UUID.randomUUID().toString());
+        }
+
+        return userRequest;
+    }
+
+    public AuthProvider getAuthProviderByUser(User user){
+        if (user.getAuthProvider() == null) {
+            throw new CustomException(Ouath2ErrorCode.NOT_FOUND_AUTH_PROVIDER);
+        }
+        return user.getAuthProvider();
     }
 
     // 이메일로 유저 조회, 없으면 예외
