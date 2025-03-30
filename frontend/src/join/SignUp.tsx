@@ -14,6 +14,9 @@ export default function SignupPage() {
   const [introduce, setIntroduce] = useState<string>("");
   const [isChecked, setIsChecked] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [provider, setProvider] = useState<string>("email");
+  const [providerUserId, setProviderUserId] = useState<string | null>(null);
+
 
   const navigate = useNavigate();
 
@@ -39,11 +42,18 @@ export default function SignupPage() {
         if (decoded.name) {
           setName(decoded.name);
         }
+        if (decoded.provider) {
+          setProvider(decoded.provider);
+        }
+        if (decoded.providerUserId) {
+          setProviderUserId(decoded.providerUserId);
+        }
       } catch (err) {
         console.error("❌ JWT 디코딩 실패:", err);
       }
     }
   }, []);
+  
 
   useEffect(() => {
     const codeParam = searchParams.get("code");
@@ -80,6 +90,8 @@ export default function SignupPage() {
           email,
           domainName,
           introduce,
+          provider,
+          providerUserId
         }),
       });
 

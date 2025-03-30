@@ -15,11 +15,13 @@ public class JwtTokenProvider {
     private final long EXPIRATION_TIME = 1000 * 60 * 60; // 1시간
 
     // 토큰 생성
-    public String createToken(String email, String name) {
+    public String createToken(String email, String name, String provider, String providerUserId) {
         return Jwts.builder()
                 .setSubject(email) //고유 식별자
                 .claim("email", email) // 명시적으로 claim에 email도 추가
                 .claim("name", name)   // 유저 이름 추가
+                .claim("provider", provider)
+                .claim("providerUserId", providerUserId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)

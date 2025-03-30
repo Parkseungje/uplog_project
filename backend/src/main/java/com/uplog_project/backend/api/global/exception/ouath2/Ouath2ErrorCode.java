@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 public enum Ouath2ErrorCode implements ErrorCode {
 
     INVALID_GOOGLE_CLIENT_CONFIG(HttpStatus.BAD_REQUEST.value(), "올바르지 않은 구글 정보입니다."),
+    NOT_FOUND_AUTH_PROVIDER(HttpStatus.NOT_FOUND.value(), "인증기관이 올바르지 않습니다"),
     ;
 
     private final int code;

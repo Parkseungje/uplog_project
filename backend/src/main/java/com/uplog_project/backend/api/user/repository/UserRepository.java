@@ -1,5 +1,6 @@
 package com.uplog_project.backend.api.user.repository;
 
+import com.uplog_project.backend.api.user.entity.AuthProvider;
 import com.uplog_project.backend.api.user.entity.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
