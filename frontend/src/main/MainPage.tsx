@@ -5,6 +5,7 @@ import GithubIcon from "../assets/icons/github-icon.svg";
 import GoogleIcon from "../assets/icons/google-icon.svg";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
+import { jwtDecode } from "jwt-decode";
 
 export default function MainPage() {
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
@@ -27,24 +28,28 @@ export default function MainPage() {
   useEffect(() => {
     const url = new URL(window.location.href);
     const token = url.searchParams.get("token");
-    const name = url.searchParams.get("name");
   
-    if (token && name) {
-      localStorage.setItem("accessToken", token);
-      localStorage.setItem("userNickname", decodeURIComponent(name));
-      setUserName(decodeURIComponent(name));
+    if (token) {
+      // JWT에서 이름 추출
+      try {
+        const decoded: any = jwtDecode(token); // email, name 포함되어 있음
+        localStorage.setItem("accessToken", token);
+        localStorage.setItem("userNickname", decoded.name);
+        setUserName(decoded.name);
   
-      // Clean up the URL
-      url.searchParams.delete("token");
-      url.searchParams.delete("name");
-      window.history.replaceState({}, document.title, url.pathname);
+        // URL 정리
+        url.searchParams.delete("token");
+        window.history.replaceState({}, document.title, url.pathname);
+      } catch (err) {
+        console.error("JWT 디코딩 실패:", err);
+      }
     }
   }, []);
   
   // 로그인 시도 함수
   const handleLogin = async () => {
     try {
-      const response = await fetch("/api2/user/login", {
+      const response = await fetch("/api/user/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ toEmail, userPw }),
@@ -85,7 +90,7 @@ export default function MainPage() {
   
     // 👉 2. 토큰이 있으면 백엔드에 실제 유저 정보 fetch (검증용)
     if (token) {
-      fetch("/api2/user/", {
+      fetch("/api/user/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -200,7 +205,7 @@ export default function MainPage() {
                   <button
                     onClick={async () => {
                       try {
-                        const response = await fetch("/api2/message", {
+                        const response = await fetch("/api/message", {
                           method: "POST",
                           headers: {
                             "Content-Type": "application/json"
@@ -251,7 +256,7 @@ export default function MainPage() {
               <button
                 className="p-3 bg-white text-white rounded-full hover:bg-gray-700 transition"
                 onClick={() => {
-                  window.location.href = `${process.env.REACT_APP_BACKEND}/api/user/oauth/google`;
+                  window.location.href = `${process.env.REACT_APP_BACKEND}/api/oauth2/google`;
                 }}
               >
                 <img src={GoogleIcon} alt="Google 로그인" className="w-6 h-6" />

@@ -9,7 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/oauth/google/callback" element={<GoogleCallback />} />
+        <Route path="/oauth2/google/callback" element={<GoogleCallback />} />
       </Routes>
     </Router>
   );

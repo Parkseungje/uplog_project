@@ -12,6 +12,7 @@
     "@types/react": "^18.3.19",
     "@types/react-dom": "^18.3.5",
     "framer-motion": "^12.5.0",
+    "jwt-decode": "^4.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "4.10.1",
@@ -53,4 +54,3 @@
   },
   "proxy": "http://localhost:8080"
 }
-
