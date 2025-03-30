@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@RequestMapping("/api2")
+@RequestMapping("/api")
 @Slf4j
 public class MessageController {
 

@@ -1,15 +1,12 @@
 package com.uplog_project.backend.api.user.controller;
 
 import com.uplog_project.backend.api.global.aop.Response;
-import com.uplog_project.backend.api.global.security.JwtTokenProvider;
-import com.uplog_project.backend.api.message.service.MessageService;
 import com.uplog_project.backend.api.user.dto.UserRequest;
+import com.uplog_project.backend.api.user.entity.User;
 import com.uplog_project.backend.api.user.service.UserService;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api2/user")
+@RequestMapping("/api/user")
 @Slf4j
 public class UserController {
 
@@ -45,10 +42,9 @@ public class UserController {
     }
 
     @GetMapping("/") //내정보 조회
-    public ResponseEntity<Response<?>> getMyInfo(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(Response.success(Map.of(
-                "email", userDetails.getUsername()
-        )));
+    public ResponseEntity<Response<?>> getMyInfo(Authentication authentication) {
+        User data = userservice.findMe(authentication);
+        return ResponseEntity.ok(Response.success(data));
     }
 
     @DeleteMapping("/{id}")

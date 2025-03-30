@@ -4,6 +4,7 @@ import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 export default function SignupPage() {
   const [name, setName] = useState<string>("");
@@ -25,6 +26,24 @@ export default function SignupPage() {
 
   // URL 쿼리에서 code 추출
   const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        if (decoded.email) {
+          setEmail(decoded.email);
+          setIsEmailLocked(true);
+        }
+        if (decoded.name) {
+          setName(decoded.name);
+        }
+      } catch (err) {
+        console.error("❌ JWT 디코딩 실패:", err);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const codeParam = searchParams.get("code");
@@ -51,7 +70,7 @@ export default function SignupPage() {
     }
 
     try {
-      const response = await fetch("/api2/user/", {
+      const response = await fetch("/api/user/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
